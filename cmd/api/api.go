@@ -27,5 +27,5 @@ func (app *application) Start() error {
 	userService.RegisterRoutes(subrouter)
 
 	log.Print("Listening on ", app.addr)
-	return http.ListenAndServe(app.addr, nil)
+	return http.ListenAndServe(app.addr, router)
 }
