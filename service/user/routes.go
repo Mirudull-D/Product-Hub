@@ -62,4 +62,27 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 }
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	var payload types.LoginUserPayload
+
+	ctx := r.Context()
+
+	if err := utils.ParseJson(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload &v", errors))
+		return
+	}
+	user, err := h.store.GetUserByEmail(ctx, payload.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("not found,invalid email or password"))
+		return
+	}
+	if !auth.Comparepasswords(user.Password, payload.Password) {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("not found,invalid email or password"))
+		return
+	}
+	utils.WriteJson(w, http.StatusCreated, map[string]string{"token": ""})
 }
