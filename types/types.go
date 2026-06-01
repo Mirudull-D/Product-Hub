@@ -1,11 +1,14 @@
 package types
 
-import "Product-Hub/db/generated"
+import (
+	"Product-Hub/db/generated"
+	"context"
+)
 
 type UserStore interface {
-	GetUserByEmail(email string) (generated.User, error)
-	GetUserById(id int) (generated.User, error)
-	CreateUser(payload RegisterUserPayload) error
+	GetUserByEmail(ctx context.Context, email string) (*generated.User, error)
+	GetUserById(ctx context.Context, id int) (*generated.User, error)
+	CreateUser(ctx context.Context, payload RegisterUserPayload) error
 }
 type RegisterUserPayload struct {
 	FirstName string `json:"firstName"`
