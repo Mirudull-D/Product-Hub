@@ -1,16 +1,21 @@
 package user
 
 import (
+	"Product-Hub/types"
+	"Product-Hub/utils"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
+	store types.UserStore
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(store types.UserStore) *Handler {
+	return &Handler{
+		store: store,
+	}
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
@@ -18,7 +23,13 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/register", h.handleRegister).Methods("POST")
 }
 
-func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-}
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
+	var payload types.RegisterUserPayload
+
+	if err := utils.ParseJson(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+	}
+
+}
+func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 }

@@ -22,7 +22,8 @@ func (app *application) Start() error {
 	router := mux.NewRouter()
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-	userService := user.NewHandler()
+	userStore := user.NewStore(app.db)
+	userService := user.NewHandler(userStore)
 	userService.RegisterRoutes(subrouter)
 
 	log.Print("Listening on ", app.addr)
