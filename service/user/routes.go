@@ -1,6 +1,7 @@
 package user
 
 import (
+	"Product-Hub/config"
 	"Product-Hub/service/auth"
 	"Product-Hub/types"
 	"Product-Hub/utils"
@@ -80,9 +81,16 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("not found,invalid email or password"))
 		return
 	}
+	secret := []byte(config.Envs.JWTSecret)
+	token, err := auth.CreateJwt(secret, int(user.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	if !auth.Comparepasswords(user.Password, payload.Password) {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("not found,invalid email or password"))
 		return
 	}
-	utils.WriteJson(w, http.StatusCreated, map[string]string{"token": ""})
+	utils.WriteJson(w, http.StatusCreated, map[string]string{"token": token})
 }

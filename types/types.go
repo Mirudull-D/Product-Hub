@@ -10,6 +10,9 @@ type UserStore interface {
 	GetUserById(ctx context.Context, id int) (*generated.User, error)
 	CreateUser(ctx context.Context, payload RegisterUserPayload) error
 }
+type ProductStore interface {
+	GetProducts(ctx context.Context) ([]generated.GetProductsRow, error)
+}
 type RegisterUserPayload struct {
 	FirstName string `json:"firstName" validate:"required"`
 	LastName  string `json:"lastName" validate:"required"`

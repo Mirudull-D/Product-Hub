@@ -7,3 +7,8 @@ VALUES ($1, $2, $3, $4)
 SELECT id, first_name, last_name, email, password
 FROM users
 WHERE email = $1 LIMIT 1;
+
+-- name: GetProducts :many
+SELECT id,name,description,image,quantity
+FROM products
+ORDER BY id;

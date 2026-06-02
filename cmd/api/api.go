@@ -1,6 +1,7 @@
 package api
 
 import (
+	"Product-Hub/service/products"
 	"Product-Hub/service/user"
 	"database/sql"
 	"log"
@@ -25,6 +26,10 @@ func (app *application) Start() error {
 	userStore := user.NewStore(app.db)
 	userService := user.NewHandler(userStore)
 	userService.RegisterRoutes(subrouter)
+
+	productStore := products.NewStore(app.db)
+	productService := products.NewHandler(productStore)
+	productService.RegisterRoutes(subrouter)
 
 	log.Print("Listening on ", app.addr)
 	return http.ListenAndServe(app.addr, router)
