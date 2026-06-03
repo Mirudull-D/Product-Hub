@@ -20,7 +20,7 @@ func GetCartitemsIds(items []types.CartItem) ([]int32, error) {
 }
 func (h *Handler) createOrder(ctx context.Context,
 	ps []generated.Product, items []types.CartItem,
-	userID int) (int, float64, error) {
+	userID int) (int64, float64, error) {
 	productMap := make(map[int]generated.Product)
 	for _, product := range ps {
 		productMap[int(product.ID)] = product
@@ -40,8 +40,27 @@ func (h *Handler) createOrder(ctx context.Context,
 			return 0, 0, err
 		}
 	}
-
-	return 0, totalCost, nil
+	createdOrderId, err := h.store.CreateOrder(ctx, generated.CreateOrderParams{
+		UserID:  int64(userID),
+		Total:   strconv.FormatFloat(totalCost, 'f', 2, 64),
+		Status:  "pending",
+		Address: "A.dsdgfds",
+	})
+	for _, item := range items {
+		_, err := h.store.CreateOrderItems(ctx, generated.CreateOrderItemsParams{
+			OrderID:   createdOrderId,
+			ProductID: int64(item.ProductId),
+			Quantity:  int32(item.Quantity),
+			Price:     productMap[item.ProductId].Price,
+		})
+		if err != nil {
+			return 0, 0, err
+		}
+	}
+	if err != nil {
+		return 0, 0, err
+	}
+	return createdOrderId, totalCost, nil
 
 }
 

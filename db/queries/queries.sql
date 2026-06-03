@@ -27,3 +27,18 @@ SET
     description = $5,
     quantity = $6
 WHERE id = $1;
+
+-- name: CreateProducts :one
+INSERT INTO products(name,description,image,quantity,price)
+VALUES ($1,$2,$3,$4,$5)
+RETURNING *;
+
+-- name: CreateOrder :one
+INSERT INTO orders(user_id,total,status,address)
+VALUES ($1,$2,$3,$4)
+RETURNING *;
+
+-- name: CreateOrderItems :one
+INSERT INTO orders_items(order_id,product_id,quantity,price)
+VALUES ($1,$2,$3,$4)
+    RETURNING *;
