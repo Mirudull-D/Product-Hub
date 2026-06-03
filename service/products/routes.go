@@ -2,6 +2,7 @@ package products
 
 import (
 	"Product-Hub/types"
+	"Product-Hub/utils"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -18,6 +19,13 @@ func NewHandler(store types.ProductStore) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/product", HandleGetProduct).Methods(http.MethodGet)
+	router.HandleFunc("/product", h.HandleGetProduct).Methods(http.MethodGet)
 }
-func HandleGetProduct(w http.ResponseWriter, r *http.Request) {}
+func (h *Handler) HandleGetProduct(w http.ResponseWriter, r *http.Request) {
+	products, err := h.store.GetProducts(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJson(w, http.StatusOK, products)
+}
