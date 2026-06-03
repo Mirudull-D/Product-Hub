@@ -35,6 +35,7 @@ func CreateJwt(secret []byte, userId int) (string, error) {
 func WithJwtAuth(handler http.HandlerFunc, store types.UserStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenstr := getTokenFromRequest(r)
+		fmt.Println("TOKEN:", tokenstr)
 
 		token, err := validateToken(tokenstr)
 		if err != nil {
@@ -48,10 +49,11 @@ func WithJwtAuth(handler http.HandlerFunc, store types.UserStore) http.HandlerFu
 			return
 		}
 		claims := token.Claims.(jwt.MapClaims)
-		str := claims["userId"].(string)
+		userIDStr := claims["userId"].(string)
 
-		userId, _ := strconv.Atoi(str)
-		u, err := store.GetUserById(r.Context(), userId)
+		userId, err := strconv.ParseInt(userIDStr, 10, 64)
+
+		u, err := store.GetUserById(r.Context(), int(userId))
 		if err != nil {
 			utils.WriteError(w, http.StatusForbidden, fmt.Errorf("user not found"))
 			permissionDenied(w)
@@ -59,7 +61,9 @@ func WithJwtAuth(handler http.HandlerFunc, store types.UserStore) http.HandlerFu
 		}
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, UserKey, u.ID)
-		r := r.WithContext(ctx)
+		r = r.WithContext(ctx)
+		fmt.Println("into next")
+		handler.ServeHTTP(w, r)
 	}
 }
 func getTokenFromRequest(r *http.Request) string {
@@ -83,8 +87,8 @@ func permissionDenied(w http.ResponseWriter) {
 	utils.WriteError(w, http.StatusForbidden, fmt.Errorf("permission denied"))
 }
 
-func GetUserIdfromRequest(ctx context.Context) (int, error) {
-	userId, ok := ctx.Value(UserKey).(int)
+func GetUserIdfromRequest(ctx context.Context) (int64, error) {
+	userId, ok := ctx.Value(UserKey).(int64)
 	if !ok {
 		return 0, fmt.Errorf("user not found in context")
 	}

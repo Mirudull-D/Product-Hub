@@ -8,6 +8,11 @@ SELECT id, first_name, last_name, email, password
 FROM users
 WHERE email = $1 LIMIT 1;
 
+-- name: GetByUserId :one
+SELECT *
+FROM users
+WHERE id = $1;
+
 -- name: GetProducts :many
 SELECT *
 FROM products
@@ -39,6 +44,6 @@ VALUES ($1,$2,$3,$4)
 RETURNING *;
 
 -- name: CreateOrderItems :one
-INSERT INTO orders_items(order_id,product_id,quantity,price)
+INSERT INTO order_items(order_id,product_id,quantity,price)
 VALUES ($1,$2,$3,$4)
     RETURNING *;

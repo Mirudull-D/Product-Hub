@@ -11,7 +11,7 @@ type Store struct {
 	queries *generated.Queries
 }
 
-func (s *Store) UpdateProduct(ctx context.Context, product generated.Product) error {
+func (s *Store) UpdateProduct(ctx context.Context, product generated.UpdateProductParams) error {
 	err := s.queries.UpdateProduct(ctx, product)
 	if err != nil {
 		return err

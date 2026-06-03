@@ -25,7 +25,7 @@ CREATE TABLE orders (
                         created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE orders_items (
+CREATE TABLE order_items (
                               id BIGSERIAL PRIMARY KEY,
                               order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
                               product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,

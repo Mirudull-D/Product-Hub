@@ -20,8 +20,11 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) GetUserById(ctx context.Context, id int) (*generated.User, error) {
-	//TODO implement me
-	panic("implement me")
+	u, err := s.queries.GetByUserId(ctx, int64(id))
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
 }
 
 func (s *Store) CreateUser(ctx context.Context, payload types.RegisterUserPayload) error {

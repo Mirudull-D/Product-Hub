@@ -1,6 +1,8 @@
 package api
 
 import (
+	"Product-Hub/service/cart"
+	"Product-Hub/service/order"
 	"Product-Hub/service/products"
 	"Product-Hub/service/user"
 	"database/sql"
@@ -30,6 +32,10 @@ func (app *application) Start() error {
 	productStore := products.NewStore(app.db)
 	productService := products.NewHandler(productStore)
 	productService.RegisterRoutes(subrouter)
+
+	orderStore := order.NewStore(app.db)
+	cartService := cart.NewHandler(orderStore, productStore, userStore)
+	cartService.RegisterRoutes(subrouter)
 
 	log.Print("Listening on ", app.addr)
 	return http.ListenAndServe(app.addr, router)

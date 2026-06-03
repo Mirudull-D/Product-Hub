@@ -13,11 +13,11 @@ type UserStore interface {
 type ProductStore interface {
 	GetProducts(ctx context.Context) ([]generated.Product, error)
 	GetProductsById(ctx context.Context, id []int32) ([]generated.Product, error)
-	UpdateProduct(ctx context.Context, product generated.Product) error
+	UpdateProduct(ctx context.Context, product generated.UpdateProductParams) error
 }
 type OrderStore interface {
 	CreateOrder(ctx context.Context, order generated.CreateOrderParams) (int64, error)
-	CreateOrderItems(ctx context.Context, order generated.CreateOrderItemsParams) (int64, error)
+	CreateOrderItems(ctx context.Context, order generated.CreateOrderItemsParams) error
 }
 type RegisterUserPayload struct {
 	FirstName string `json:"firstName" validate:"required"`

@@ -20,7 +20,9 @@ func GetCartitemsIds(items []types.CartItem) ([]int32, error) {
 }
 func (h *Handler) createOrder(ctx context.Context,
 	ps []generated.Product, items []types.CartItem,
-	userID int) (int64, float64, error) {
+	userID int64) (int64, float64, error) {
+
+	fmt.Println("Creating order...")
 	productMap := make(map[int]generated.Product)
 	for _, product := range ps {
 		productMap[int(product.ID)] = product
@@ -35,7 +37,14 @@ func (h *Handler) createOrder(ctx context.Context,
 		product := productMap[int(item.ProductId)]
 		product.Quantity -= int32(item.Quantity)
 
-		err := h.productStore.UpdateProduct(ctx, product)
+		err := h.productStore.UpdateProduct(ctx, generated.UpdateProductParams{
+			ID:          product.ID,
+			Name:        product.Name,
+			Price:       product.Price,
+			Image:       product.Image,
+			Description: product.Description,
+			Quantity:    product.Quantity,
+		})
 		if err != nil {
 			return 0, 0, err
 		}
@@ -46,19 +55,21 @@ func (h *Handler) createOrder(ctx context.Context,
 		Status:  "pending",
 		Address: "A.dsdgfds",
 	})
+	fmt.Println("Created order:", createdOrderId)
+	if err != nil {
+		return 0, 0, err
+	}
 	for _, item := range items {
-		_, err := h.store.CreateOrderItems(ctx, generated.CreateOrderItemsParams{
+		err2 := h.store.CreateOrderItems(ctx, generated.CreateOrderItemsParams{
 			OrderID:   createdOrderId,
 			ProductID: int64(item.ProductId),
 			Quantity:  int32(item.Quantity),
 			Price:     productMap[item.ProductId].Price,
 		})
-		if err != nil {
-			return 0, 0, err
+		if err2 != nil {
+			return 0, 0, err2
 		}
-	}
-	if err != nil {
-		return 0, 0, err
+		fmt.Println("Creating order item for product:", item.ProductId)
 	}
 	return createdOrderId, totalCost, nil
 
@@ -74,8 +85,11 @@ func checkIfCartIsInStock(cartitems []types.CartItem, products map[int]generated
 		if !ok {
 			return fmt.Errorf("product %d is not available in the store, please refresh your cart", item.ProductId)
 		}
-		if int(product.Quantity) > item.Quantity {
-			return fmt.Errorf("quantity must be greater than %d", item.Quantity)
+		if int(product.Quantity) < item.Quantity {
+			return fmt.Errorf(
+				"only %d items left in stock",
+				product.Quantity,
+			)
 		}
 	}
 	return nil

@@ -33,6 +33,7 @@ func (h *Handler) HandleCartCheckout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userId, err2 := auth.GetUserIdfromRequest(ctx)
 	if err2 != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err2)
 		return
 	}
 
@@ -50,14 +51,17 @@ func (h *Handler) HandleCartCheckout(w http.ResponseWriter, r *http.Request) {
 	productIds, err := GetCartitemsIds(payload.Items)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	ps, err := h.productStore.GetProductsById(ctx, productIds)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	orderId, totalPrice, err := h.createOrder(ctx, ps, payload.Items, userId)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	err = utils.WriteJson(w, http.StatusCreated, map[string]any{
@@ -65,6 +69,7 @@ func (h *Handler) HandleCartCheckout(w http.ResponseWriter, r *http.Request) {
 		"totalPrice": totalPrice,
 	})
 	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 }
