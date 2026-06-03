@@ -11,6 +11,14 @@ type Store struct {
 	queries *generated.Queries
 }
 
+func (s *Store) UpdateProduct(ctx context.Context, product generated.Product) error {
+	err := s.queries.UpdateProduct(ctx, product)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewStore(db *sql.DB) *Store {
 	return &Store{
 		db:      db,
@@ -18,8 +26,15 @@ func NewStore(db *sql.DB) *Store {
 	}
 }
 
-func (s *Store) GetProducts(ctx context.Context) ([]generated.GetProductsRow, error) {
+func (s *Store) GetProducts(ctx context.Context) ([]generated.Product, error) {
 	products, err := s.queries.GetProducts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return products, err
+}
+func (s *Store) GetProductsById(ctx context.Context, id []int32) ([]generated.Product, error) {
+	products, err := s.queries.GetProductsById(ctx, id)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,21 @@ FROM users
 WHERE email = $1 LIMIT 1;
 
 -- name: GetProducts :many
-SELECT id,name,description,image,quantity
+SELECT *
 FROM products
 ORDER BY id;
+
+-- name: GetProductsById :many
+SELECT *
+FROM products
+WHERE id = ANY($1::int[]);
+
+-- name: UpdateProduct :exec
+UPDATE products
+SET
+    name = $2,
+    price = $3,
+    image = $4,
+    description = $5,
+    quantity = $6
+WHERE id = $1;

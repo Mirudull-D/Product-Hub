@@ -11,8 +11,11 @@ type UserStore interface {
 	CreateUser(ctx context.Context, payload RegisterUserPayload) error
 }
 type ProductStore interface {
-	GetProducts(ctx context.Context) ([]generated.GetProductsRow, error)
+	GetProducts(ctx context.Context) ([]generated.Product, error)
+	GetProductsById(ctx context.Context, id []int32) ([]generated.Product, error)
+	UpdateProduct(ctx context.Context, product generated.Product) error
 }
+type OrderStore interface{}
 type RegisterUserPayload struct {
 	FirstName string `json:"firstName" validate:"required"`
 	LastName  string `json:"lastName" validate:"required"`
@@ -22,4 +25,13 @@ type RegisterUserPayload struct {
 type LoginUserPayload struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
+}
+
+type CartItem struct {
+	ProductId int `json:"productId" validate:"required"`
+	Quantity  int `json:"quantity" validate:"required"`
+}
+
+type CartCheckoutPayload struct {
+	Items []CartItem `json:"items" validate:"required"`
 }
