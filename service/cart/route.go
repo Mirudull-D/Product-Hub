@@ -1,6 +1,7 @@
 package cart
 
 import (
+	"Product-Hub/service/auth"
 	"Product-Hub/types"
 	"Product-Hub/utils"
 	"fmt"
@@ -13,22 +14,27 @@ import (
 type Handler struct {
 	store        types.OrderStore
 	productStore types.ProductStore
+	userStore    types.UserStore
 }
 
-func NewHandler(store types.OrderStore, productStore types.ProductStore) *Handler {
+func NewHandler(store types.OrderStore, productStore types.ProductStore, userStore types.UserStore) *Handler {
 	return &Handler{
 		store:        store,
 		productStore: productStore,
+		userStore:    userStore,
 	}
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/cart/checkout", h.HandleCartCheckout).Methods(http.MethodPost)
+	router.HandleFunc("/cart/checkout", auth.WithJwtAuth(h.HandleCartCheckout, h.userStore)).Methods(http.MethodPost)
 }
 func (h *Handler) HandleCartCheckout(w http.ResponseWriter, r *http.Request) {
 	var payload types.CartCheckoutPayload
-
 	ctx := r.Context()
+	userId, err2 := auth.GetUserIdfromRequest(ctx)
+	if err2 != nil {
+		return
+	}
 
 	if err := utils.ParseJson(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
@@ -46,4 +52,19 @@ func (h *Handler) HandleCartCheckout(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 	}
 	ps, err := h.productStore.GetProductsById(ctx, productIds)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+	}
+	orderId, totalPrice, err := h.createOrder(ctx, ps, payload.Items, userId)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+	}
+
+	err = utils.WriteJson(w, http.StatusCreated, map[string]any{
+		"orderId":    orderId,
+		"totalPrice": totalPrice,
+	})
+	if err != nil {
+		return
+	}
 }

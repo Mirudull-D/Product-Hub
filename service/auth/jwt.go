@@ -2,11 +2,21 @@ package auth
 
 import (
 	"Product-Hub/config"
+	"Product-Hub/types"
+	"Product-Hub/utils"
+	"context"
+	"fmt"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type conextKey string
+
+const UserKey conextKey = "userID"
 
 func CreateJwt(secret []byte, userId int) (string, error) {
 
@@ -21,4 +31,62 @@ func CreateJwt(secret []byte, userId int) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+func WithJwtAuth(handler http.HandlerFunc, store types.UserStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenstr := getTokenFromRequest(r)
+
+		token, err := validateToken(tokenstr)
+		if err != nil {
+			permissionDenied(w)
+			log.Print("Error validating token: ", err)
+			return
+		}
+		if !token.Valid {
+			permissionDenied(w)
+			log.Print("invalid token")
+			return
+		}
+		claims := token.Claims.(jwt.MapClaims)
+		str := claims["userId"].(string)
+
+		userId, _ := strconv.Atoi(str)
+		u, err := store.GetUserById(r.Context(), userId)
+		if err != nil {
+			utils.WriteError(w, http.StatusForbidden, fmt.Errorf("user not found"))
+			permissionDenied(w)
+			return
+		}
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, UserKey, u.ID)
+		r := r.WithContext(ctx)
+	}
+}
+func getTokenFromRequest(r *http.Request) string {
+	tokenAuth := r.Header.Get("Authorization")
+	if tokenAuth == "" {
+		return ""
+	}
+	return tokenAuth
+}
+
+func validateToken(t string) (*jwt.Token, error) {
+	return jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return ([]byte)(config.Envs.JWTSecret), nil
+	})
+}
+
+func permissionDenied(w http.ResponseWriter) {
+	utils.WriteError(w, http.StatusForbidden, fmt.Errorf("permission denied"))
+}
+
+func GetUserIdfromRequest(ctx context.Context) (int, error) {
+	userId, ok := ctx.Value(UserKey).(int)
+	if !ok {
+		return 0, fmt.Errorf("user not found in context")
+	}
+	return userId, nil
 }
