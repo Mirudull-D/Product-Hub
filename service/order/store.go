@@ -30,5 +30,6 @@ func (s *Store) CreateOrderItems(ctx context.Context, order generated.CreateOrde
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

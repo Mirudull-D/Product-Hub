@@ -4,6 +4,7 @@ import (
 	"Product-Hub/service/auth"
 	"Product-Hub/types"
 	"Product-Hub/utils"
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -15,6 +16,7 @@ type Handler struct {
 	store        types.OrderStore
 	productStore types.ProductStore
 	userStore    types.UserStore
+	db           *sql.DB
 }
 
 func NewHandler(store types.OrderStore, productStore types.ProductStore, userStore types.UserStore) *Handler {

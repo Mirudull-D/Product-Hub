@@ -22,7 +22,12 @@ func (h *Handler) createOrder(ctx context.Context,
 	ps []generated.Product, items []types.CartItem,
 	userID int64) (int64, float64, error) {
 
-	fmt.Println("Creating order...")
+	tx, err := h.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback()
+	qtx := generated.New(tx)
 	productMap := make(map[int]generated.Product)
 	for _, product := range ps {
 		productMap[int(product.ID)] = product
@@ -37,7 +42,7 @@ func (h *Handler) createOrder(ctx context.Context,
 		product := productMap[int(item.ProductId)]
 		product.Quantity -= int32(item.Quantity)
 
-		err := h.productStore.UpdateProduct(ctx, generated.UpdateProductParams{
+		err := qtx.UpdateProduct(ctx, generated.UpdateProductParams{
 			ID:          product.ID,
 			Name:        product.Name,
 			Price:       product.Price,
@@ -49,19 +54,18 @@ func (h *Handler) createOrder(ctx context.Context,
 			return 0, 0, err
 		}
 	}
-	createdOrderId, err := h.store.CreateOrder(ctx, generated.CreateOrderParams{
+	createdOrderId, err := qtx.CreateOrder(ctx, generated.CreateOrderParams{
 		UserID:  int64(userID),
 		Total:   strconv.FormatFloat(totalCost, 'f', 2, 64),
 		Status:  "pending",
 		Address: "A.dsdgfds",
 	})
-	fmt.Println("Created order:", createdOrderId)
 	if err != nil {
 		return 0, 0, err
 	}
 	for _, item := range items {
-		err2 := h.store.CreateOrderItems(ctx, generated.CreateOrderItemsParams{
-			OrderID:   createdOrderId,
+		_, err2 := qtx.CreateOrderItems(ctx, generated.CreateOrderItemsParams{
+			OrderID:   createdOrderId.ID,
 			ProductID: int64(item.ProductId),
 			Quantity:  int32(item.Quantity),
 			Price:     productMap[item.ProductId].Price,
@@ -69,9 +73,14 @@ func (h *Handler) createOrder(ctx context.Context,
 		if err2 != nil {
 			return 0, 0, err2
 		}
-		fmt.Println("Creating order item for product:", item.ProductId)
 	}
-	return createdOrderId, totalCost, nil
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return createdOrderId.ID, totalCost, nil
 
 }
 
