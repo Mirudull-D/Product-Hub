@@ -6,13 +6,19 @@ import (
 	db2 "Product-Hub/db"
 	"database/sql"
 	"log"
+
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 
 	db, err := db2.NewPostgreSqlStorage(config.Envs.ConnString)
 
-	app := api.NewApplication(config.Envs.Port, db)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "192.168.0.108:6379",
+	})
+
+	app := api.NewApplication(config.Envs.Port, db, rdb)
 
 	initStorage(db)
 

@@ -10,15 +10,21 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/redis/go-redis/v9"
 )
 
 type application struct {
 	addr string
 	db   *sql.DB
+	rdb  *redis.Client
 }
 
-func NewApplication(addr string, db *sql.DB) *application {
-	return &application{addr: addr, db: db}
+func NewApplication(addr string, db *sql.DB, rdb *redis.Client) *application {
+	return &application{
+		addr: addr,
+		db:   db,
+		rdb:  rdb,
+	}
 }
 
 func (app *application) Start() error {
@@ -29,7 +35,7 @@ func (app *application) Start() error {
 	userService := user.NewHandler(userStore)
 	userService.RegisterRoutes(subrouter)
 
-	productStore := products.NewStore(app.db)
+	productStore := products.NewStore(app.db, app.rdb)
 	productService := products.NewHandler(productStore)
 	productService.RegisterRoutes(subrouter)
 
