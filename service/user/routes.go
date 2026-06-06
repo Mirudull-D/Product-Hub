@@ -7,6 +7,7 @@ import (
 	"Product-Hub/utils"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -25,9 +26,14 @@ func NewHandler(store types.UserStore) *Handler {
 func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/register", h.handleRegister).Methods("POST")
+	router.HandleFunc("/health", h.HandleHealth).Methods(http.MethodGet)
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		fmt.Println("Login total:", time.Since(start))
+	}()
 	var payload types.RegisterUserPayload
 
 	ctx := r.Context()
@@ -93,4 +99,28 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJson(w, http.StatusCreated, map[string]string{"token": token})
+}
+
+func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
+	err := h.store.PingDb(r.Context())
+	if err != nil {
+		err = utils.WriteJson(w, http.StatusServiceUnavailable,
+			map[string]string{
+				"status": "database down",
+			},
+		)
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	err = utils.WriteJson(w, http.StatusOK,
+		map[string]string{
+			"status": "ok",
+		},
+	)
+	if err != nil {
+		return
+	}
 }

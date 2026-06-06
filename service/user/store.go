@@ -41,3 +41,7 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*generated.Us
 	user, err := s.queries.GetUserByEmail(ctx, email)
 	return &user, err
 }
+
+func (s *Store) PingDb(ctx context.Context) error {
+	return s.db.PingContext(ctx)
+}
