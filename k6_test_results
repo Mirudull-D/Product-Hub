@@ -1,0 +1,50 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: load_test.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 100 max VUs, 2m30s max duration (incl. graceful stop):
+              * default: Up to 100 looping VUs for 2m0s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<1000' p(95)=723.89ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 25695   212.067663/s
+    checks_succeeded...: 100.00% 25695 out of 25695
+    checks_failed......: 0.00%   0 out of 25695
+
+    ✓ register status 201
+    ✓ login status ok
+    ✓ token exists
+    ✓ products status 200
+    ✓ checkout success
+
+    HTTP
+    http_req_duration..............: avg=161.49ms min=1.55ms med=75.27ms max=7.84s p(90)=326.09ms p(95)=723.89ms
+      { expected_response:true }...: avg=161.49ms min=1.55ms med=75.27ms max=7.84s p(90)=326.09ms p(95)=723.89ms
+    http_req_failed................: 0.00%  0 out of 20556
+    http_reqs......................: 20556  169.65413/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.64s    min=1.14s  med=1.4s    max=8.98s p(90)=2.35s    p(95)=2.86s   
+    iterations.....................: 5139   42.413533/s
+    vus............................: 7      min=3          max=100
+    vus_max........................: 100    min=100        max=100
+
+    NETWORK
+    data_received..................: 4.0 MB 33 kB/s
+    data_sent......................: 4.5 MB 37 kB/s
