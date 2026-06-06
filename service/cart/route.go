@@ -19,11 +19,12 @@ type Handler struct {
 	db           *sql.DB
 }
 
-func NewHandler(store types.OrderStore, productStore types.ProductStore, userStore types.UserStore) *Handler {
+func NewHandler(store types.OrderStore, productStore types.ProductStore, userStore types.UserStore, db *sql.DB) *Handler {
 	return &Handler{
 		store:        store,
 		productStore: productStore,
 		userStore:    userStore,
+		db:           db,
 	}
 }
 

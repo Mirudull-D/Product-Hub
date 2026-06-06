@@ -40,7 +40,7 @@ func (app *application) Start() error {
 	productService.RegisterRoutes(subrouter)
 
 	orderStore := order.NewStore(app.db)
-	cartService := cart.NewHandler(orderStore, productStore, userStore)
+	cartService := cart.NewHandler(orderStore, productStore, userStore, app.db)
 	cartService.RegisterRoutes(subrouter)
 
 	log.Print("Listening on ", app.addr)
